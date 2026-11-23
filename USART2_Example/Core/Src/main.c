@@ -12,11 +12,14 @@
 void SystemClockConfig(void);
 void UART2_Init(void);
 void Error_handler(void);
+uint8_t convert_to_upper(uint8_t data);
 
 UART_HandleTypeDef huart2;
+uint8_t recieved_data = 0;
+uint32_t count = 0;
 
-char *user_data = "Hi, I'm Mohammed\r\n";
-char recieved_data[20];
+char *user_data = "The application is running\r\n";
+
 
 int main()
 {
@@ -31,11 +34,26 @@ int main()
 		Error_handler();
 	}
 
-	Length = strlen(recieved_data);
-	if( HAL_UART_Receive(&huart2, (uint8_t*)recieved_data, Length, HAL_MAX_DELAY) != HAL_OK)
+	uint8_t recieved_data = {};
+	uint8_t data_buffer[100] ;
+
+	while(1)
 	{
-		Error_handler();
+		HAL_UART_Receive(&huart2, &recieved_data, 1, HAL_MAX_DELAY);
+
+		if(recieved_data == '\r')
+		{
+
+			break;
+		}
+
+		else
+			data_buffer[count++] = convert_to_upper(recieved_data);
 	}
+
+	data_buffer[count++] = '\r';
+
+	HAL_UART_Transmit(&huart2, (uint8_t*)data_buffer, count, HAL_MAX_DELAY);
 
 	while(1);
 
@@ -69,4 +87,14 @@ void UART2_Init()
 void Error_handler(void)
 {
 	while(1);
+}
+
+uint8_t convert_to_upper(uint8_t data)
+{
+	if( data >= 'a' && data <= 'z')
+	{
+		data -= 32;
+	}
+
+	return data;
 }
