@@ -1,0 +1,15 @@
+.metadata/
+pdf/
+Debug/
+Release/
+*.o
+*.d
+*.elf
+*.map
+*.list
+*.su
+*.cyclo
+.settings/
+*.log
+Clock/
+/HSI_Clock_Output/HSI_Clock_Output Debug.launch
