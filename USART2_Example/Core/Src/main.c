@@ -74,9 +74,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(recieved_data == '\r')
 	{
-		reception_complete = TRUE;
+
 		data_buffer[count++] = '\r';
 		HAL_UART_Transmit(&huart2, data_buffer, count, HAL_MAX_DELAY) ;
+		count = 0;
 	}
 
 	else
@@ -84,7 +85,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		data_buffer[count++] = recieved_data;
 	}
 
-
+	HAL_UART_Receive_IT(&huart2, &recieved_data, 1);
 }
 
 void Error_handler(void)
