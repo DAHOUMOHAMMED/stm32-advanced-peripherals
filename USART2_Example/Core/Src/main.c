@@ -9,14 +9,20 @@
 #include "main.h"
 #include "string.h"
 
+#define FALSE  0
+#define TRUE   1
+
 void SystemClockConfig(void);
 void UART2_Init(void);
 void Error_handler(void);
 uint8_t convert_to_upper(uint8_t data);
 
 UART_HandleTypeDef huart2;
-uint8_t recieved_data = 0;
 uint32_t count = 0;
+uint8_t data_buffer[100];
+uint8_t recieved_data = 0;
+
+uint8_t reception_complete = FALSE;
 
 char *user_data = "The application is running\r\n";
 
@@ -28,32 +34,12 @@ int main()
 	UART2_Init();
 
 	uint16_t Length = strlen(user_data);
+	HAL_UART_Transmit(&huart2, (uint8_t*)user_data, Length, HAL_MAX_DELAY) ;
 
-	if( HAL_UART_Transmit(&huart2, (uint8_t*)user_data, Length, HAL_MAX_DELAY) != HAL_OK)
-	{
-		Error_handler();
-	}
 
-	uint8_t recieved_data = {};
-	uint8_t data_buffer[100] ;
+	HAL_UART_Receive_IT(&huart2, &recieved_data, 1);
 
-	while(1)
-	{
-		HAL_UART_Receive(&huart2, &recieved_data, 1, HAL_MAX_DELAY);
 
-		if(recieved_data == '\r')
-		{
-
-			break;
-		}
-
-		else
-			data_buffer[count++] = convert_to_upper(recieved_data);
-	}
-
-	data_buffer[count++] = '\r';
-
-	HAL_UART_Transmit(&huart2, (uint8_t*)data_buffer, count, HAL_MAX_DELAY);
 
 	while(1);
 
@@ -81,6 +67,23 @@ void UART2_Init()
 		//There is a problem
 		Error_handler();
 	}
+
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(recieved_data == '\r')
+	{
+		reception_complete = TRUE;
+		data_buffer[count++] = '\r';
+		HAL_UART_Transmit(&huart2, data_buffer, count, HAL_MAX_DELAY) ;
+	}
+
+	else
+	{
+		data_buffer[count++] = recieved_data;
+	}
+
 
 }
 
